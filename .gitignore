@@ -1,3 +1,4 @@
-headless-downloads/**
 chrome-dir/**
+credentials.json
 devils_gambit.rb
+headless-downloads/**

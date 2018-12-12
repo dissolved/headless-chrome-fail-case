@@ -4,7 +4,9 @@ require 'capybara'
 require 'pathname'
 require 'pry'
 
+
 DOWNLOAD_PATH = Pathname.new('headless-downloads')
+USER_DIR = Pathname.new('chrome-dir')
 SWITCHES = [
   '--window-size=1280,1024',
   '--disable-bundled-ppapi-flash',
@@ -16,7 +18,10 @@ SWITCHES = [
   '--headless',
   '--disable-gpu',
   '--incognito',
-  '--new-window'
+  '--new-window',
+  '--no-sandbox',
+  '--disable-dev-shm-usage',
+  "--user-data-dir=#{USER_DIR}"
 ]
 def chrome_options
   Selenium::WebDriver::Chrome::Options.new.tap do |options|
@@ -51,20 +56,27 @@ def list_files
   puts Dir[DOWNLOAD_PATH.join('*')].join("\n")
 end
 
+
+
+
+FileUtils.rm_rf(DOWNLOAD_PATH)
+
 # Configurations
+Capybara::Driver::Base.class_eval { def status_code; 'unknown'.freeze; end }
+Capybara.default_max_wait_time = 10
+
 Capybara.register_driver :headless do |app|
   Capybara::Selenium::Driver.new(app, browser: :chrome, options: chrome_options).tap do |driver|
     driver.browser.download_path = DOWNLOAD_PATH
   end
 end
-Capybara.javascript_driver = :chrome
-Capybara.configure do |config|
-  config.default_max_wait_time = 10 # seconds
-  config.default_driver = :headless
-end
 
-FileUtils.rm_rf(DOWNLOAD_PATH)
-session = Capybara.current_session
+Capybara.default_driver = :headless
+Capybara.javascript_driver = :headless
+Capybara.current_driver = :headless
+Selenium::WebDriver.logger.level = :warn
+
+session = Capybara::Session.new(:headless)
 session.driver.browser
 
 list_files

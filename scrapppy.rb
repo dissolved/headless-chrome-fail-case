@@ -51,40 +51,27 @@ def chrome_options
   end
 end
 
+def configure
+  FileUtils.rm_rf(DOWNLOAD_PATH)
+
+  Capybara::Driver::Base.class_eval { def status_code; 'unknown'.freeze; end }
+  Capybara.default_max_wait_time = 10
+
+  Capybara.register_driver :headless do |app|
+    Capybara::Selenium::Driver.new(app, browser: :chrome, options: chrome_options).tap do |driver|
+      driver.browser.download_path = DOWNLOAD_PATH
+    end
+  end
+
+  Capybara.default_driver = :headless
+  Capybara.javascript_driver = :headless
+  Capybara.current_driver = :headless
+  Selenium::WebDriver.logger.level = :warn
+end
+
 def list_files
   puts "Listing files in DOWNLOAD_PATH:"
   puts Dir[DOWNLOAD_PATH.join('*')].join("\n")
 end
 
-
-
-
-FileUtils.rm_rf(DOWNLOAD_PATH)
-
-# Configurations
-Capybara::Driver::Base.class_eval { def status_code; 'unknown'.freeze; end }
-Capybara.default_max_wait_time = 10
-
-Capybara.register_driver :headless do |app|
-  Capybara::Selenium::Driver.new(app, browser: :chrome, options: chrome_options).tap do |driver|
-    driver.browser.download_path = DOWNLOAD_PATH
-  end
-end
-
-Capybara.default_driver = :headless
-Capybara.javascript_driver = :headless
-Capybara.current_driver = :headless
-Selenium::WebDriver.logger.level = :warn
-
-session = Capybara::Session.new(:headless)
-session.driver.browser
-
-list_files
-
-session.visit "http://www.gutenberg.org/ebooks/6168"
-link_node = session.all('table.files a.link').detect{|n|n.text == "EPUB (with images)"}
-puts "Clicking link"
-link_node.click
-puts "Waiting a few seconds"
-sleep 3
-list_files
+configure

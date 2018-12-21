@@ -1,5 +1,6 @@
+*.swp
+.DS_Store
 chrome-dir/**
 credentials.json
 devils_gambit.rb
 headless-downloads/**
-*.swp

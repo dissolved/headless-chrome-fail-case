@@ -5,8 +5,8 @@ session = Capybara::Session.new(:headless)
 
 list_files
 
-session.visit "http://www.gutenberg.org/ebooks/6168"
-link_node = session.all('table.files a.link').detect{|n|n.text == "EPUB (with images)"}
+session.visit "http://localhost:8000/"
+link_node = session.find_link(id: "newtab_link")
 puts "Clicking link"
 link_node.click
 puts "Waiting a few seconds"
